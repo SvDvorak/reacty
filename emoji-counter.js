@@ -23,7 +23,12 @@ client.on("message", async (message) => {
             console.error(err);
         }
     }
-    else if(message.content.startsWith("!clear-scores") && message.author.id === config.ownerId) {
+    else if(message.content.startsWith("!clear-scores")) {
+        if(message.author.id !== config.ownerId) {
+            message.channel.send(message.author.username + " does not have permission to clear scores");
+            return;
+        }
+
         db.clear();
         message.channel.send("Cleared");
     }
