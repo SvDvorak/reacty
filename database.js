@@ -7,7 +7,7 @@ Database.prototype = {
         await this.sql.migrate();
         console.log("Loaded database");
         // TEST SETUP
-        // var createUser = (id, name) => { return { identifier: id, username: name } };
+        // var createUser = (id, name) => { return { id: id, username: name } };
         // await this.addToScore("👌", createUser("1234", "Radomaj"), 13);
         // await this.addToScore("👌", createUser("5678", "IX"), 2);
         // await this.addToScore("👌", createUser("1111", "AlexTobacco"), 0);
@@ -25,18 +25,18 @@ Database.prototype = {
     },
     addToScore: async function (emoji, user, addition) {
         emoji = emoji.trim();
-        row = await this.sql.get(`SELECT * FROM Score WHERE emoji = "${emoji}" and userId ="${user.identifier}"`);
+        row = await this.sql.get(`SELECT * FROM Score WHERE emoji = "${emoji}" and userId ="${user.id}"`);
 
         if (!row) {
             await this.sql.run(
                 `INSERT INTO Score (emoji, userId, userName, points) VALUES
-                ("${emoji}", "${user.identifier}", "${user.username}", "${addition}")`);
-            console.log("Added " + user.username + " to " + emoji + " scores");
+                ("${emoji}", "${user.id}", "${user.username}", "${addition}")`);
+            console.log("Added " + user.username + " (" + user.id + ") to " + emoji + " scores");
         }
         else {
             let newScore = row.points + addition;
-            await this.sql.run(`UPDATE Score SET points = ${newScore} WHERE emoji = "${emoji}" and userId ="${user.identifier}"`);
-            console.log(user.username + " just changed " + addition + " to " + newScore);
+            await this.sql.run(`UPDATE Score SET points = ${newScore} WHERE emoji = "${emoji}" and userId ="${user.id}"`);
+            console.log(user.username + " (" + user.id + ") just changed " + addition + " to " + newScore);
         }
     }
 };
