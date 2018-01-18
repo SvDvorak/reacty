@@ -1,0 +1,8 @@
+version: '2'
+services:
+  emoji-counter:
+    container_name: emoji_counter
+    build: .
+    command: node emoji-counter.js
+    volumes:
+      - /home/app/emoji-counter/database
