@@ -14,6 +14,9 @@ Database.prototype = {
         // await this.addToScore("👌", createUser("9998", "king bones"), 20);
         //
     },
+    clear: async function() {
+        await this.sql.run(`DELETE FROM Score`);
+    },
     getScore: async function(emoji) { 
         emoji = emoji.trim();
         row = await this.sql.all(`SELECT * FROM Score WHERE emoji = "${emoji}" ORDER BY points DESC`);
@@ -36,7 +39,7 @@ Database.prototype = {
         else {
             let newScore = row.points + addition;
             await this.sql.run(`UPDATE Score SET points = ${newScore} WHERE emoji = "${emoji}" and userId ="${user.id}"`);
-            console.log(user.username + " (" + user.id + ") just changed " + addition + " to " + newScore);
+            console.log(user.username + " (" + user.id + ") just changed " + addition + " " + emoji + " to " + newScore);
         }
     }
 };
