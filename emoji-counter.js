@@ -8,11 +8,7 @@ const db = new Database(sql);
 const client = new Discord.Client();
 
 client.on("message", async (message) => {
-    if(message.content.startsWith("!scores-clear") && message.author.id === config.ownerId) {
-        db.clear();
-        message.channel.send("Cleared");
-    }
-    else if (message.content.startsWith("!scores")) {
+    if (message.content.startsWith("!scores")) {
         let emoji = message.content.substring(7);
 
         try {
@@ -26,6 +22,10 @@ client.on("message", async (message) => {
         catch(err) {
             console.error(err);
         }
+    }
+    else if(message.content.startsWith("!clear-scores") && message.author.id === config.ownerId) {
+        db.clear();
+        message.channel.send("Cleared");
     }
 });
 
