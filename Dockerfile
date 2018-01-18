@@ -13,5 +13,6 @@ RUN npm install
 
 USER root
 COPY . $HOME/emoji-counter
+RUN mkdir -p database
 RUN chown -R app:app $HOME/*
 USER app
