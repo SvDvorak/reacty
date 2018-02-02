@@ -39,7 +39,7 @@ async function pinMessage(reaction, author) {
         let configuredPinChannel = await db.getSetting("PinChannel");
         let pinChannel = findChannel(reaction.message.guild, configuredPinChannel);
         if (pinChannel) {
-            pinChannel.send(author.username + ": \n" + reaction.message);
+            pinChannel.send("--- " + author.username + " ---\n" + reaction.message);
         }
         else {
             throw "ERROR: " + configuredPinChannel + " not found";
