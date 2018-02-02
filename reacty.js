@@ -17,6 +17,9 @@ client.on("message", async (message) => {
     else if (message.content.startsWith("!set-pin-channel")) {
         await registerPinChannel(message);
     }
+    else if(message.content.startsWith("!populate-from-pins")) {
+        await populatePinsToPinChannel(message);
+    }
 });
 
 client.on("messageReactionAdd", async (reaction, user) => {
@@ -30,30 +33,9 @@ client.on("messageReactionAdd", async (reaction, user) => {
     await db.addToScore(emoji, author, 1);
 
     if (emoji == "📌") {
-        await pinMessage(reaction, author);
+        await pinMessage(reaction.message);
     }
 });
-
-async function pinMessage(reaction, author) {
-    try {
-        let configuredPinChannel = await db.getSetting("PinChannel");
-        let pinChannel = findChannel(reaction.message.guild, configuredPinChannel);
-        if (pinChannel) {
-            pinChannel.send("--- " + author.username + " ---\n" + reaction.message);
-        }
-        else {
-            throw "ERROR: " + configuredPinChannel + " not found";
-        }
-    }
-    catch (ex) {
-        reaction.message.channel.send("Unable to pin message: " + ex);
-    }
-}
-
-function findChannel(guild, configuredPinChannel) {
-    configuredPinChannel = configuredPinChannel.trim();
-    return guild.channels.find(channel => channel.name == configuredPinChannel);
-}
 
 client.on("messageReactionRemove", async (reaction, user) => {
     let emoji = reaction.emoji.name;
@@ -66,12 +48,24 @@ client.on("messageReactionRemove", async (reaction, user) => {
     await db.addToScore(emoji, author, -1);
 });
 
+async function pinMessage(message) {
+    try {
+        let pinChannel = await getPinChannel(message.guild);
+        let date = message.createdAt;
+        let pinDate = date.getDay() + "/" + date.getMonth() + "/" + date.getFullYear();
+        pinChannel.send("--- " + message.author.username + " at " + pinDate + " ---\n" + message);
+    }
+    catch (ex) {
+        message.channel.send("Unable to pin message: " + ex);
+    }
+}
+
 async function getScores(message) {
     let emoji = message.content.substring(7);
     try {
         let data = await db.getScore(emoji);
         let results = data
-            .map(score => score.userName + ": " + score.points)
+            .map(score => score.username + ": " + score.points)
             .join("\n");
         let response = "Scores for " + emoji + " are as follows:\n" + results;
         message.channel.send(response);
@@ -82,30 +76,67 @@ async function getScores(message) {
 }
 
 async function clearScores(message) {
-    if (message.author.id !== config.ownerId) {
-        message.channel.send(message.author.username + " does not have permission to clear scores");
+    if (!isVerifiedAdmin(message)) {
+        return;
     }
-    else {
-        await db.clear();
-        message.channel.send("Cleared");
-    }
+    
+    await db.clear();
+    message.channel.send("Cleared");
 }
 
 async function registerPinChannel(message) {
-    if (message.author.id !== config.ownerId) {
-        message.channel.send(message.author.username + " does not have permission to clear scores");
+    if (!isVerifiedAdmin(message)) {
         return;
     }
 
-    let channelName = message.content.substring(16);
-    let pinChannel = findChannel(message.guild, channelName);
-    if (!pinChannel) {
-        message.channel.send("ERROR: " + channelName + " does not exist");
-    }
-    else {
+    try {
+        let channelName = message.content.substring(16);
+        let pinChannel = await getPinChannel(message.guild, channelName);
         await db.setSetting("PinChannel", channelName);
         message.channel.send("Set pin channel to " + channelName);
     }
+    catch(ex) {
+        message.channel.send("Unable to register pin channel: " + ex);
+    }
+}
+
+async function populatePinsToPinChannel(message) {
+    if (!isVerifiedAdmin(message)) {
+        return;
+    }
+
+    try {
+        let pins = await message.channel.fetchPinnedMessages();
+        pins.forEach(async pinnedMessage => {
+            await pinMessage(pinnedMessage);
+        });
+    }
+    catch(ex) {
+        message.channel.send("Unable to populate pin channel: " + ex)
+    }
+}
+
+async function getPinChannel(guild, pinChannelName) {
+    if(!pinChannelName) {
+        pinChannelName = await db.getSetting("PinChannel");
+    }
+
+    pinChannelName = pinChannelName.trim();
+    let pinChannel = guild.channels.find(channel => channel.name == pinChannelName);
+    if(!pinChannel) {
+        throw "ERROR: channel " + pinChannelName + " does not exist";
+    }
+
+    return pinChannel;
+}
+
+function isVerifiedAdmin(message) {
+    if (message.author.id !== config.ownerId) {
+        message.channel.send(message.author.username + " does not have permission to clear scores");
+        return false;
+    }
+
+    return true;
 }
 
 db.load()

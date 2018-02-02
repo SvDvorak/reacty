@@ -5,7 +5,7 @@
 CREATE TABLE Score (
   emoji TEXT,
   userId TEXT,
-  userName TEXT NOT NULL,
+  username TEXT NOT NULL,
   points INTEGER NOT NULL,
   PRIMARY KEY(emoji, userId)
 );

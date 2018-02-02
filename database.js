@@ -43,7 +43,7 @@ Database.prototype = {
 
         if (!row) {
             await this.sql.run(
-                `INSERT INTO Score (emoji, userId, userName, points) VALUES
+                `INSERT INTO Score (emoji, userId, username, points) VALUES
                 ("${emoji}", "${user.id}", "${user.username}", "${addition}")`);
             console.log("Added " + user.username + " (" + user.id + ") to " + emoji + " scores");
         }
