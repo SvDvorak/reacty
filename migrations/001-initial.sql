@@ -10,8 +10,14 @@ CREATE TABLE Score (
   PRIMARY KEY(emoji, userId)
 );
 
+CREATE TABLE Setting (
+  setting TEXT PRIMARY KEY,
+  value TEXT
+);
+
 --------------------------------------------------------------------------------
 -- Down
 --------------------------------------------------------------------------------
 
 DROP TABLE Score;
+DROP TABLE Setting;

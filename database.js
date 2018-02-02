@@ -2,7 +2,7 @@ module.exports = Database = function (sql) {
     this.sql = sql;
 }
 Database.prototype = {
-    load: async function() {
+    load: async function () {
         await this.sql.open("./database/scores.sqlite");
         await this.sql.migrate();
         console.log("Loaded database");
@@ -14,10 +14,21 @@ Database.prototype = {
         // await this.addToScore("👌", createUser("9998", "king bones"), 20);
         //
     },
-    clear: async function() {
+    getSetting: async function (settingName) {
+        let row = await this.sql.get(`SELECT value FROM Setting WHERE setting ="${settingName}"`);
+        if (!row) {
+            throw "ERROR: setting " + settingName + " does not exist";
+        } else {
+            return row.value;
+        }
+    },
+    setSetting: async function (settingName, value) {
+        await this.sql.run(`INSERT OR REPLACE INTO Setting (setting, value) VALUES ("${settingName}", "${value}");`);
+    },
+    clear: async function () {
         await this.sql.run(`DELETE FROM Score`);
     },
-    getScore: async function(emoji) { 
+    getScore: async function (emoji) {
         emoji = emoji.trim();
         row = await this.sql.all(`SELECT * FROM Score WHERE emoji = "${emoji}" ORDER BY points DESC`);
         if (!row) {

@@ -9,28 +9,20 @@ const client = new Discord.Client();
 
 client.on("message", async (message) => {
     if (message.content.startsWith("!scores")) {
-        let emoji = message.content.substring(7);
-
-        try {
-            let data = await db.getScore(emoji);
-            let results = data
-                .map(score => score.userName + ": " + score.points)
-                .join("\n");
-            let response = "Scores for " + emoji + " are as follows:\n" + results;
-            message.channel.send(response);
-        }
-        catch(err) {
-            console.error(err);
-        }
+        await getScores(message);
     }
-    else if(message.content.startsWith("!clear-scores")) {
-        if(message.author.id !== config.ownerId) {
-            message.channel.send(message.author.username + " does not have permission to clear scores");
-            return;
+    else if (message.content.startsWith("!clear-scores")) {
+        await clearScores(message);
+    }
+    else if (message.content.startsWith("!set-pin-channel")) {
+        let channelName = message.content.substring(16).trim();
+        let pinChannel = findChannel(message.guild, channelName);
+        if(!pinChannel) {
+            message.channel.send("ERROR: " + channelName + " does not exist");
+        } else {
+            await db.setSetting("PinChannel", channelName);
+            message.channel.send("Set pin channel to " + channelName);
         }
-
-        db.clear();
-        message.channel.send("Cleared");
     }
 });
 
@@ -43,7 +35,31 @@ client.on("messageReactionAdd", async (reaction, user) => {
     }
 
     await db.addToScore(emoji, author, 1);
+
+    if (emoji == "📌") {
+        await pinMessage(reaction, author);
+    }
 });
+
+async function pinMessage(reaction, author) {
+    try {
+        let configuredPinChannel = await db.getSetting("PinChannel");
+        let pinChannel = findChannel(reaction.message.guild, configuredPinChannel);
+        if (pinChannel) {
+            pinChannel.send(author.username + ": \n" + reaction.message);
+        }
+        else {
+            throw "ERROR: " + configuredPinChannel + " not found";
+        }
+    }
+    catch (ex) {
+        reaction.message.channel.send("Unable to pin message: " + ex);
+    }
+}
+
+function findChannel(guild, configuredPinChannel) {
+    return guild.channels.find(channel => channel.name == configuredPinChannel);
+}
 
 client.on("messageReactionRemove", async (reaction, user) => {
     let emoji = reaction.emoji.name;
@@ -55,6 +71,31 @@ client.on("messageReactionRemove", async (reaction, user) => {
 
     await db.addToScore(emoji, author, -1);
 });
+
+async function getScores(message) {
+    let emoji = message.content.substring(7);
+    try {
+        let data = await db.getScore(emoji);
+        let results = data
+            .map(score => score.userName + ": " + score.points)
+            .join("\n");
+        let response = "Scores for " + emoji + " are as follows:\n" + results;
+        message.channel.send(response);
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
+async function clearScores(message) {
+    if (message.author.id !== config.ownerId) {
+        message.channel.send(message.author.username + " does not have permission to clear scores");
+    }
+    else {
+        await db.clear();
+        message.channel.send("Cleared");
+    }
+}
 
 db.load()
     .then(() => console.log("Starting login"))
