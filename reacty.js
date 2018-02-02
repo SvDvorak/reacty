@@ -15,14 +15,7 @@ client.on("message", async (message) => {
         await clearScores(message);
     }
     else if (message.content.startsWith("!set-pin-channel")) {
-        let channelName = message.content.substring(16);
-        let pinChannel = findChannel(message.guild, channelName);
-        if(!pinChannel) {
-            message.channel.send("ERROR: " + channelName + " does not exist");
-        } else {
-            await db.setSetting("PinChannel", channelName);
-            message.channel.send("Set pin channel to " + channelName);
-        }
+        await registerPinChannel(message);
     }
 });
 
@@ -95,6 +88,23 @@ async function clearScores(message) {
     else {
         await db.clear();
         message.channel.send("Cleared");
+    }
+}
+
+async function registerPinChannel(message) {
+    if (message.author.id !== config.ownerId) {
+        message.channel.send(message.author.username + " does not have permission to clear scores");
+        return;
+    }
+
+    let channelName = message.content.substring(16);
+    let pinChannel = findChannel(message.guild, channelName);
+    if (!pinChannel) {
+        message.channel.send("ERROR: " + channelName + " does not exist");
+    }
+    else {
+        await db.setSetting("PinChannel", channelName);
+        message.channel.send("Set pin channel to " + channelName);
     }
 }
 
