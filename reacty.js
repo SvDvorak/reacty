@@ -15,7 +15,7 @@ client.on("message", async (message) => {
         await clearScores(message);
     }
     else if (message.content.startsWith("!set-pin-channel")) {
-        let channelName = message.content.substring(16).trim();
+        let channelName = message.content.substring(16);
         let pinChannel = findChannel(message.guild, channelName);
         if(!pinChannel) {
             message.channel.send("ERROR: " + channelName + " does not exist");
@@ -58,6 +58,7 @@ async function pinMessage(reaction, author) {
 }
 
 function findChannel(guild, configuredPinChannel) {
+    configuredPinChannel = configuredPinChannel.trim();
     return guild.channels.find(channel => channel.name == configuredPinChannel);
 }
 

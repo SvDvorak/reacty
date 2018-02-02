@@ -1,10 +1,10 @@
 version: '2'
 services:
-  emoji-counter:
-    container_name: emoji_counter
+  reacty:
+    container_name: reacty
     build: .
-    command: node emoji-counter.js
+    command: node reacty.js
     volumes:
-      - database:/home/app/emoji-counter/database
+      - database:/home/app/reacty/database
 volumes:
   database: { }

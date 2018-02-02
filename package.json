@@ -1,21 +1,23 @@
 {
-  "name": "emoji-counter",
+  "name": "reacty",
   "version": "1.0.0",
-  "description": "Counts emojis in channel",
-  "main": "emoji-counter.js",
+  "description": "Logs reactions to give statistics and pin messages",
+  "main": "reacty.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "discord",
     "emoji",
-    "count"
+    "count",
+    "pin",
+    "messages"
   ],
   "author": "Andreas Wilcox",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git@github.com:SvDvorak/emoji-counter.git"
+    "url": "git@github.com:SvDvorak/reacty.git"
   },
   "dependencies": {
     "discord.js": "^11.3.0",
