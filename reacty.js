@@ -20,6 +20,16 @@ client.on("message", async (message) => {
     else if(message.content.startsWith("!populate-from-pins")) {
         await populatePinsToPinChannel(message);
     }
+    else if(message.content.startsWith("!reacty-help")) {
+        message.channel.send(
+            "Heya, reacty is a bot that logs statistics of reactions and keeps a channel with pinned messages.\n" +
+            "To show which users has received the most number of reactions with an emoji write\n" + 
+            "!scores 'emoji'");
+            // "As an admin you can use these commands:" + 
+            // "!clear-scores - clears emoji scoreboard (for all emojis)" +
+            // "!set-pin-channel - sets the channel that pins will be posted to" + 
+            // "!populate-from-pins - when you already have pins using Discord pins you might want to populate your pin channel from there, this does that");
+    }
 });
 
 client.on("messageReactionAdd", async (reaction, user) => {
@@ -53,7 +63,10 @@ async function pinMessage(message) {
         let pinChannel = await getPinChannel(message.guild);
         let date = message.createdAt;
         let pinDate = date.getDay() + "/" + date.getMonth() + "/" + date.getFullYear();
-        pinChannel.send("--- " + message.author.username + " at " + pinDate + " ---\n" + message);
+        let header = "--- " + message.author.username + " at " + pinDate + " ---";
+        pinChannel.send(
+            header + "\n" +
+            message);
     }
     catch (ex) {
         message.channel.send("Unable to pin message: " + ex);
