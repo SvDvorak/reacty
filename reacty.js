@@ -107,7 +107,7 @@ async function populatePinsToPinChannel(message) {
 
     try {
         let pins = await message.channel.fetchPinnedMessages();
-        pins.forEach(async pinnedMessage => {
+        pins.array().reverse().forEach(async pinnedMessage => {
             await pinMessage(pinnedMessage);
         });
     }
