@@ -62,7 +62,7 @@ async function pinMessage(message) {
     try {
         let pinChannel = await getPinChannel(message.guild);
         let date = message.createdAt;
-        let pinDate = date.getDay() + "/" + date.getMonth() + "/" + date.getFullYear();
+        let pinDate = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
         let header = "--- " + message.author.username + " at " + pinDate + " ---";
         pinChannel.send(
             header + "\n" +
