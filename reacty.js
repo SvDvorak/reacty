@@ -8,6 +8,42 @@ const db = new Database(sql);
 const client = new Discord.Client();
 
 client.on("message", async (message) => {
+    try {
+        await onMessage(message);
+    }
+    catch (ex) {
+        logException("Unable to parse message", ex);
+    }
+});
+
+client.on("messageReactionAdd", async (reaction, user) => {
+    try {
+        await onAddedReaction(reaction);
+    }
+    catch(ex) {
+        logException("Unable to parse added reaction", ex);
+    }
+});
+
+client.on("messageReactionRemove", async (reaction, user) => {
+    try {
+        await onRemovedReaction(reaction);
+    }
+    catch(ex) {
+        logException("Unable to parse removed reaction", ex);
+    }
+});
+
+function logException(message, exception) {
+    let exceptionText = exception;
+    if((typeof exception === "object") && (exception !== null)) {
+        exceptionText = JSON.stringify(exception);
+    }
+
+    console.log(message + ": " + exceptionText);
+}
+
+async function onMessage(message) {
     if (message.content.startsWith("!scores")) {
         await getScores(message);
     }
@@ -17,22 +53,22 @@ client.on("message", async (message) => {
     else if (message.content.startsWith("!set-pin-channel")) {
         await registerPinChannel(message);
     }
-    else if(message.content.startsWith("!populate-from-pins")) {
+    else if (message.content.startsWith("!populate-from-pins")) {
         await populatePinsToPinChannel(message);
     }
-    else if(message.content.startsWith("!reacty-help")) {
-        message.channel.send(
+    else if (message.content.startsWith("!reacty-help")) {
+        await message.channel.send(
             "Heya, reacty is a bot that logs statistics of reactions and keeps a channel with pinned messages.\n" +
-            "To show which users has received the most number of reactions with an emoji write\n" + 
+            "To show which users has received the most number of reactions with an emoji write\n" +
             "!scores 'emoji'");
-            // "As an admin you can use these commands:" + 
-            // "!clear-scores - clears emoji scoreboard (for all emojis)" +
-            // "!set-pin-channel - sets the channel that pins will be posted to" + 
-            // "!populate-from-pins - when you already have pins using Discord pins you might want to populate your pin channel from there, this does that");
+        // "As an admin you can use these commands:" + 
+        // "!clear-scores - clears emoji scoreboard (for all emojis)" +
+        // "!set-pin-channel - sets the channel that pins will be posted to" + 
+        // "!populate-from-pins - when you already have pins using Discord pins you might want to populate your pin channel from there, this does that");
     }
-});
+}
 
-client.on("messageReactionAdd", async (reaction, user) => {
+async function onAddedReaction(reaction) {
     let emoji = reaction.emoji.name;
     let author = reaction.message.author;
 
@@ -45,9 +81,9 @@ client.on("messageReactionAdd", async (reaction, user) => {
     if (emoji == "📌") {
         await pinMessage(reaction.message);
     }
-});
+}
 
-client.on("messageReactionRemove", async (reaction, user) => {
+async function onRemovedReaction(reaction) {
     let emoji = reaction.emoji.name;
     let author = reaction.message.author;
 
@@ -56,7 +92,7 @@ client.on("messageReactionRemove", async (reaction, user) => {
     }
 
     await db.addToScore(emoji, author, -1);
-});
+}
 
 async function pinMessage(message) {
     try {
@@ -92,7 +128,7 @@ async function clearScores(message) {
     if (!isVerifiedAdmin(message)) {
         return;
     }
-    
+
     await db.clear();
     message.channel.send("Cleared");
 }
@@ -108,7 +144,7 @@ async function registerPinChannel(message) {
         await db.setSetting("PinChannel", channelName);
         message.channel.send("Set pin channel to " + channelName);
     }
-    catch(ex) {
+    catch (ex) {
         message.channel.send("Unable to register pin channel: " + ex);
     }
 }
@@ -124,19 +160,19 @@ async function populatePinsToPinChannel(message) {
             await pinMessage(pinnedMessage);
         });
     }
-    catch(ex) {
+    catch (ex) {
         message.channel.send("Unable to populate pin channel: " + ex)
     }
 }
 
 async function getPinChannel(guild, pinChannelName) {
-    if(!pinChannelName) {
+    if (!pinChannelName) {
         pinChannelName = await db.getSetting("PinChannel");
     }
 
     pinChannelName = pinChannelName.trim();
     let pinChannel = guild.channels.find(channel => channel.name == pinChannelName);
-    if(!pinChannel) {
+    if (!pinChannel) {
         throw "ERROR: channel " + pinChannelName + " does not exist";
     }
 
