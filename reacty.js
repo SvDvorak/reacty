@@ -188,6 +188,10 @@ function isVerifiedAdmin(message) {
     return true;
 }
 
+process.on('uncaughtException', (err) => {
+    logException("Uncaught exception", err);
+});
+
 db.load()
     .then(() => console.log("Starting login"))
     .then(() => client.login(config.token))
