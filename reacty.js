@@ -140,7 +140,6 @@ async function registerPinChannel(message) {
 
     try {
         let channelName = message.content.substring(16);
-        let pinChannel = await getPinChannel(message.guild, channelName);
         await db.setSetting("PinChannel", channelName);
         message.channel.send("Set pin channel to " + channelName);
     }
@@ -189,7 +188,8 @@ function isVerifiedAdmin(message) {
 }
 
 process.on('uncaughtException', (err) => {
-    logException("Uncaught exception", err);
+    console.log("Uncaught exception: " + err);
+    client.login(config.token);
 });
 
 db.load()
