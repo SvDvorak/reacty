@@ -187,9 +187,13 @@ function isVerifiedAdmin(message) {
     return true;
 }
 
+var errorCount = 0;
 process.on('uncaughtException', (err) => {
-    console.log("Uncaught exception: " + err);
-    client.login(config.token);
+    console.log("Uncaught exception number " + errorCount + ": " + err);
+    errorCount += 1;
+    if(errorCount < 50) {
+        client.login(config.token);
+    }
 });
 
 db.load()
