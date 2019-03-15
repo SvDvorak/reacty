@@ -192,7 +192,9 @@ process.on('uncaughtException', (err) => {
     console.log("Uncaught exception number " + errorCount + ": " + err);
     errorCount += 1;
     if(errorCount < 50) {
-        client.login(config.token);
+        client.login(config.token).catch(ex => {
+            console.log("Couldn't log in " + ex);
+        });
     }
 });
 
