@@ -187,18 +187,35 @@ function isVerifiedAdmin(message) {
     return true;
 }
 
-var errorCount = 0;
-process.on('uncaughtException', (err) => {
-    console.log("Uncaught exception number " + errorCount + ": " + err);
-    errorCount += 1;
-    if(errorCount < 50) {
-        client.login(config.token).catch(ex => {
-            console.log("Couldn't log in " + ex);
-        });
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+process.on('uncaughtException', async (err) => {
+    console.log("Uncaught exception: " + err);
+    console.log("Trying to login again");
+    var errorCount = 1;
+    let loggedIn = false;
+    while(!loggedIn && errorCount < 20) {
+        try {
+            await client.login(config.token);
+            loggedIn = true;
+        }
+        catch(loginErr) {
+            console.log("Login attempt " + errorCount + " failed: " + loginErr);
+            await sleep(errorCount * 20 * 1000);
+            errorCount += 1;
+        }
     }
+
+    console.log(loggedIn ? "Successfully logged in on attempt " + errorCount : "Failed to login after " + errorCount + " tries");
 });
 
-db.load()
-    .then(() => console.log("Starting login"))
-    .then(() => client.login(config.token))
-    .then(() => console.log('Logged in to Discord'));
+async function start() {
+    await db.load();
+    console.log("Starting login");
+    await client.login(config.token);
+    console.log('Logged in to Discord');
+}
+
+start();
