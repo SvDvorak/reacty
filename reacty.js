@@ -191,25 +191,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-process.on('uncaughtException', async (err) => {
-    console.log("Uncaught exception: " + err);
-    console.log("Trying to login again");
-    var errorCount = 1;
-    let loggedIn = false;
-    while(!loggedIn && errorCount < 20) {
-        try {
-            await client.login(config.token);
-            loggedIn = true;
-        }
-        catch(loginErr) {
-            console.log("Login attempt " + errorCount + " failed: " + loginErr);
-            await sleep(errorCount * 20 * 1000);
-            errorCount += 1;
-        }
-    }
-
-    console.log(loggedIn ? "Successfully logged in on attempt " + errorCount : "Failed to login after " + errorCount + " tries");
-});
+client.on('error', console.error);
 
 async function start() {
     await db.load();
