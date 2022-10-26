@@ -100,9 +100,8 @@ async function pinMessage(message) {
         let date = message.createdAt;
         let pinDate = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
         let header = "--- " + message.author.username + " at " + pinDate + " ---";
-        pinChannel.send(
-            header + "\n" +
-            message);
+        let channelMessage = header + "\n" + message.content;
+        pinChannel.send(channelMessage);
     }
     catch (ex) {
         message.channel.send("Unable to pin message: " + ex);
